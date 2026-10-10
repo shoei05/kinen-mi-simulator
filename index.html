@@ -109,8 +109,8 @@ footer{flex:none;background:var(--accent);color:#fff;font-size:11px;line-height:
 <footer>教育用デモ。登場人物はすべて架空です。音声は Google Gemini TTS、イラストは Gemini 2.5 Flash Image で生成しました。指標は MITI 4.2.1 の考え方を簡略化したもので、実際の評価基準ではありません。 © 2026 Masahide Koda（東北大学 公衆衛生学分野）</footer>
 <div id="overlay"><div class="card"><img class="hero" src="img/title.webp?v=2" alt=""><h2 id="t-title">禁煙外来 動機づけ面接シミュレーター</h2><p id="t-intro"></p><button id="startbtn">面接をはじめる</button><p class="small" style="margin-top:12px">音声が流れます。スピーカーまたはイヤホンをご用意ください。</p><p class="small">教育用デモ。登場人物はすべて架空です。指標は MITI 4.2.1 の考え方を簡略化したもので、実際の評価基準ではありません。</p></div></div>
 <script>
-const Q=new URLSearchParams(location.search), DEMO=Q.get('demo'); // demo=good|poor|neutral → auto path
-const CODE={OQ:'開かれた質問',CQ:'閉じた質問',SR:'単純な聞き返し',CR:'複雑な聞き返し',AF:'是認',SUM:'要約',AP:'自律性の尊重',GI:'情報提供',PER:'説得・警告',ADV:'許可のない助言',CON:'直面化'};
+const Q=new URLSearchParams(location.search), DEMO=Q.get('demo'); // demo=good|best|poor|neutral → auto path
+const CODE={OQ:'開かれた質問',CQ:'閉じた質問',SR:'単純な聞き返し',CR:'複雑な聞き返し',AF:'是認',SUM:'要約',AP:'許可を求める／自律性の尊重',GI:'情報提供',PER:'説得・警告',ADV:'許可のない助言',CON:'直面化'};
 const GOOD=new Set(['OQ','SR','CR','AF','SUM','AP','GI']);
 let S,m,cur,codes=[],path=[],hist=[],T0=performance.now();window.__clips=[];
 const $=s=>document.querySelector(s), log=$('#log');
@@ -144,7 +144,8 @@ function report(end){const c=x=>codes.filter(y=>x.includes(y)).length;const R=c(
  const score=Math.max(0,Math.min(100,Math.round(60*good/Math.max(1,codes.length)+40*meter)));
  const grade=score>=80?'A':score>=60?'B':'C';
  const sc=S.scoring||{};const txt=((sc.report_templates||{})[end]||'').split('\n').slice(2).join('<br>');
- const v={good:'行動変容への一歩を引き出せました',neutral:'関係は保てましたが、変化の言葉はまだ少なめです',poor:'患者さんが身構えてしまいました'}[end];
+ const fk=(end==='good'&&grade==='C')?'good_c':end;
+ const v={good:'行動変容への一歩を引き出せました',good_c:'一歩は引き出せましたが、立て直しに頼った面接でした',neutral:'関係は保てましたが、変化の言葉はまだ少なめです',poor:'患者さんが身構えてしまいました'}[fk];
  const rows=hist.map((h,k)=>{const n=S.nodes[h.node],ch=n.choices[h.i],ok=GOOD.has(ch.code);let alt='';
    if(!ok){const best=n.choices.filter(x=>GOOD.has(x.code)).sort((a,b)=>(b.delta.change+b.delta.rapport-b.delta.resistance)-(a.delta.change+a.delta.rapport-a.delta.resistance))[0];
      if(best)alt=`<div class="alt">よりよい返答の例：「${best.label}」（${CODE[best.code]}）</div>`}
@@ -153,13 +154,13 @@ function report(end){const c=x=>codes.filter(y=>x.includes(y)).length;const R=c(
  <div class="score"><span class="big">${score}</span><span>/ 100点</span><span class="grade">評価 ${grade}</span></div>
  <p class="small">点数の内訳：MIに一致する返答の割合（60点）＋最後の面接の状態（チェンジトーク・信頼関係・抵抗の低さ、40点）</p>
  <table><tr><td>聞き返し ÷ 質問（R:Q）</td><td>${rq}</td></tr><tr><td>複雑な聞き返しの割合（%CR）</td><td>${cr}</td></tr>
- <tr><td>MIに一致する行動（是認・要約・自律の尊重）</td><td>${c(['AF','SUM','AP'])}</td></tr><tr><td>MIに一致しない行動（説得・助言・直面化）</td><td>${c(['PER','ADV','CON'])}</td></tr>
+ <tr><td>MIに一致する行動（是認・要約・許可・自律の尊重）</td><td>${c(['AF','SUM','AP'])}</td></tr><tr><td>MIに一致しない行動（説得・助言・直面化）</td><td>${c(['PER','ADV','CON'])}</td></tr>
  <tr><td>チェンジトーク／信頼関係／抵抗</td><td>${m.change} / ${m.rapport} / ${m.resistance}</td></tr></table>
  <h3>返答ごとの振り返り</h3><table class="turns">${rows}</table>
- <h3>指導医からの講評</h3><p>${(S.feedback_voice||{})[end]||txt}</p>
- <p class="small">※指標はMITI 4.2.1の考え方を簡略化したデモです。実際の評価では、全発話をJevで分類し、教員が確率の低い発話を確認します。</p>
- <button class="fbbtn" onclick="AU.src='audio/feedback_${end}.mp3';AU.play()">講評をもう一度聞く</button><button onclick="location.href=location.pathname">もう一度</button></div>`;
- $('#overlay').style.display='grid';unlockAudio();const fa=AU;fa.onended=null;fa.src=`audio/feedback_${end}.mp3`;window.__clips.push({src:`audio/feedback_${end}.mp3`,t:(performance.now()-T0)/1000});fa.play().catch(()=>{});
+ <h3>指導医からの講評</h3><p>${(S.feedback_voice||{})[fk]||txt}</p>
+ <p class="small">※指標はMITI 4.2.1の考え方を簡略化したデモです。実際の評価では、全発話をMI発話分類ツール（Jev）で分類し、教員が確率の低い発話を確認します。</p>
+ <button class="fbbtn" onclick="AU.src='audio/feedback_${fk}.mp3';AU.play()">講評をもう一度聞く</button><button onclick="location.href=location.pathname">もう一度</button></div>`;
+ $('#overlay').style.display='grid';unlockAudio();const fa=AU;fa.onended=null;fa.src=`audio/feedback_${fk}.mp3`;window.__clips.push({src:`audio/feedback_${fk}.mp3`,t:(performance.now()-T0)/1000});fa.play().catch(()=>{});
  if(DEMO){let y=0;const card=$('.rep');const iv=setInterval(()=>{y+=3;card.scrollTop=y;if(y>card.scrollHeight)clearInterval(iv)},60)}}
 fetch('scenario.json').then(r=>r.json()).then(j=>{S=j;m={...S.meters};$('#t-title').textContent=S.title||$('#t-title').textContent;$('#t-intro').textContent=S.intro||'';
  $('#pname').textContent=S.patient.name;$('#profile').textContent=S.patient.profile;setMeters();
