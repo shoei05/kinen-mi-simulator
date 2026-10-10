@@ -44,7 +44,9 @@ aside{border-right:1px solid var(--line);padding:14px;background:var(--panel)}
 .card h2{margin:0 0 10px;font-size:26px}.card p{color:#cdd3e1;line-height:1.8}
 .card button{margin-top:14px;background:var(--acc);color:#111;border:0;border-radius:10px;padding:10px 22px;font-size:15px;font-weight:700;cursor:pointer}
 .rep table{width:100%;border-collapse:collapse;margin:10px 0;font-size:14px}.rep td{padding:6px 8px;border-bottom:1px solid var(--line)}.rep td:last-child{text-align:right;font-weight:700}
-.rep .verdict{font-size:18px;font-weight:700;margin:6px 0}.small{font-size:12px;color:var(--sub)}
+.rep .verdict{font-size:18px;font-weight:700;margin:6px 0}.score{display:flex;align-items:center;gap:18px;margin:8px 0 4px}.score .big{font-size:46px;font-weight:900;color:var(--acc)}.score .grade{font-size:22px;font-weight:800;padding:4px 14px;border-radius:10px;background:#0b0d12}
+.turns td{vertical-align:top;font-size:13px}.turns td:last-child{text-align:left;font-weight:400}.alt{color:#9fd8b8;font-size:12px;margin-top:3px}
+.fbbtn{background:#2b4a8b!important;color:#fff!important;margin-right:8px}.small{font-size:12px;color:var(--sub)}
 </style></head><body>
 <header><div class="logo">禁</div><div><h1>禁煙外来 動機づけ面接シミュレーター</h1><div class="sub">返答を選ぶと、患者さんが声で答えます</div></div></header>
 <main>
@@ -63,7 +65,7 @@ aside{border-right:1px solid var(--line);padding:14px;background:var(--panel)}
 const Q=new URLSearchParams(location.search), DEMO=Q.get('demo'); // demo=good|poor|neutral → auto path
 const CODE={OQ:'開かれた質問',CQ:'閉じた質問',SR:'単純な聞き返し',CR:'複雑な聞き返し',AF:'是認',SUM:'要約',AP:'自律性の尊重',GI:'情報提供',PER:'説得・警告',ADV:'許可のない助言',CON:'直面化'};
 const GOOD=new Set(['OQ','SR','CR','AF','SUM','AP','GI']);
-let S,m,cur,codes=[],path=[],T0=performance.now();window.__clips=[];
+let S,m,cur,codes=[],path=[],hist=[],T0=performance.now();window.__clips=[];
 const $=s=>document.querySelector(s), log=$('#log');
 function setMeters(){for(const k of ['change','rapport','resistance']){m[k]=Math.max(0,Math.min(100,m[k]));$('#m-'+k+' i').style.width=m[k]+'%';$('#m-'+k+' .v').textContent=m[k]}
  const c=x=>codes.filter(y=>x.includes(y)).length;
@@ -81,21 +83,35 @@ async function showNode(id){cur=id;const n=S.nodes[id];await patientSay(id);
  n.choices.forEach((c,i)=>{const b=document.createElement('button');b.textContent=c.label;b.onclick=()=>choose(i);box.appendChild(b)});
  if(DEMO){const pick=(S.demo&&S.demo[DEMO]||{})[id];await sleep(1600);const bs=box.querySelectorAll('button');const i=pick??0;bs[i].classList.add('hl');await sleep(1100);choose(i)}}
 async function choose(i){const n=S.nodes[cur],c=n.choices[i];$('#choices').innerHTML='';
- add('row d',`<div class="msg d">${c.label}<span class="tag">${CODE[c.code]||c.code}</span></div><img class="mini" src="img/doctor.webp">`);codes.push(c.code);path.push(cur+':'+i);
+ add('row d',`<div class="msg d">${c.label}<span class="tag">${CODE[c.code]||c.code}</span></div><img class="mini" src="img/doctor.webp">`);codes.push(c.code);path.push(cur+':'+i);hist.push({node:cur,i});
  await play(`audio/${cur}_c${i}.mp3`,'あなた（医療者）');
  for(const k in c.delta)m[k]+=c.delta[k];setMeters();mood();
  add('tip '+(GOOD.has(c.code)?'good':'bad'),(GOOD.has(c.code)?'◎ ':'△ ')+c.feedback);
  await sleep(DEMO?1800:900);showNode(c.next)}
 function report(end){const c=x=>codes.filter(y=>x.includes(y)).length;const R=c(['SR','CR']),Qn=c(['OQ','CQ']);
  const rq=Qn?(R/Qn).toFixed(2):'質問なし';const cr=R?Math.round(100*c(['CR'])/R)+'%':'聞き返しなし';
+ const good=codes.filter(x=>GOOD.has(x)).length;
+ const meter=(m.change+m.rapport+(100-m.resistance))/300;
+ const score=Math.max(0,Math.min(100,Math.round(60*good/Math.max(1,codes.length)+40*meter)));
+ const grade=score>=80?'A':score>=60?'B':'C';
  const sc=S.scoring||{};const txt=((sc.report_templates||{})[end]||'').split('\n').slice(2).join('<br>');
  const v={good:'行動変容への一歩を引き出せました',neutral:'関係は保てましたが、変化の言葉はまだ少なめです',poor:'患者さんが身構えてしまいました'}[end];
- $('#overlay').innerHTML=`<div class="card rep"><img class="hero" src="img/end_${end}.webp" alt=""><h2>パフォーマンス評価（MITIの考え方に基づく）</h2><div class="verdict">${v}</div>
+ const rows=hist.map((h,k)=>{const n=S.nodes[h.node],ch=n.choices[h.i],ok=GOOD.has(ch.code);let alt='';
+   if(!ok){const best=n.choices.filter(x=>GOOD.has(x.code)).sort((a,b)=>(b.delta.change+b.delta.rapport-b.delta.resistance)-(a.delta.change+a.delta.rapport-a.delta.resistance))[0];
+     if(best)alt=`<div class="alt">よりよい返答の例：「${best.label}」（${CODE[best.code]}）</div>`}
+   return `<tr><td>${k+1}</td><td>${ok?'◎':'△'}</td><td>「${ch.label}」<br><span class="small">${CODE[ch.code]}：${ch.feedback}</span>${alt}</td></tr>`}).join('');
+ $('#overlay').innerHTML=`<div class="card rep"><img class="hero" src="img/end_${end}.webp" alt=""><h2>パフォーマンス評価</h2><div class="verdict">${v}</div>
+ <div class="score"><span class="big">${score}</span><span>/ 100点</span><span class="grade">評価 ${grade}</span></div>
+ <p class="small">点数の内訳：MIに一致する返答の割合（60点）＋最後の面接の状態（チェンジトーク・信頼関係・抵抗の低さ、40点）</p>
  <table><tr><td>聞き返し ÷ 質問（R:Q）</td><td>${rq}</td></tr><tr><td>複雑な聞き返しの割合（%CR）</td><td>${cr}</td></tr>
  <tr><td>MIに一致する行動（是認・要約・自律の尊重）</td><td>${c(['AF','SUM','AP'])}</td></tr><tr><td>MIに一致しない行動（説得・助言・直面化）</td><td>${c(['PER','ADV','CON'])}</td></tr>
  <tr><td>チェンジトーク／信頼関係／抵抗</td><td>${m.change} / ${m.rapport} / ${m.resistance}</td></tr></table>
- <p>${txt}</p><p class="small">※指標はMITI 4.2.1の考え方を簡略化したデモです。実際の評価では、全発話をJevで分類し、教員が確率の低い発話を確認します。</p>
- <button onclick="location.href=location.pathname">もう一度</button></div>`;$('#overlay').style.display='grid'}
+ <h3 style="margin:14px 0 4px;font-size:16px">返答ごとの振り返り</h3><table class="turns">${rows}</table>
+ <h3 style="margin:14px 0 4px;font-size:16px">指導医からの講評</h3><p>${(S.feedback_voice||{})[end]||txt}</p>
+ <p class="small">※指標はMITI 4.2.1の考え方を簡略化したデモです。実際の評価では、全発話をJevで分類し、教員が確率の低い発話を確認します。</p>
+ <button class="fbbtn" onclick="new Audio('audio/feedback_${end}.mp3').play()">講評をもう一度聞く</button><button onclick="location.href=location.pathname">もう一度</button></div>`;
+ $('#overlay').style.display='grid';const fa=new Audio(`audio/feedback_${end}.mp3`);window.__clips.push({src:`audio/feedback_${end}.mp3`,t:(performance.now()-T0)/1000});fa.play().catch(()=>{});
+ if(DEMO){let y=0;const card=$('.rep');const iv=setInterval(()=>{y+=3;card.scrollTop=y;if(y>card.scrollHeight)clearInterval(iv)},60)}}
 fetch('scenario.json').then(r=>r.json()).then(j=>{S=j;m={...S.meters};$('#t-title').textContent=S.title||$('#t-title').textContent;$('#t-intro').textContent=S.intro||'';
  $('#pname').textContent=S.patient.name;$('#profile').textContent=S.patient.profile;setMeters();
  const go=()=>{$('#overlay').style.display='none';T0=performance.now();window.__t0=Date.now();showNode(S.start)};
