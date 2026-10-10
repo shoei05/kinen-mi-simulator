@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>禁煙外来 動機づけ面接シミュレーター</title>
+<style>
+:root{--bg:#14171f;--panel:#1c2030;--line:#2a3045;--text:#e7e9ef;--sub:#9aa3b8;--acc:#f0b429;--good:#3fbf7f;--bad:#e5534b;--blue:#4c8dff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans JP","Hiragino Sans",sans-serif;height:100vh;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:14px;padding:10px 18px;border-bottom:1px solid var(--line);background:#11141b}
+.logo{width:34px;height:34px;border-radius:8px;background:var(--acc);color:#111;display:grid;place-items:center;font-weight:900}
+header h1{font-size:16px;margin:0;letter-spacing:.05em}header .sub{color:var(--sub);font-size:12px}
+main{flex:1;display:grid;grid-template-columns:260px 1fr 300px;min-height:0}
+aside{border-right:1px solid var(--line);padding:14px;background:var(--panel)}
+.who{display:flex;gap:10px;align-items:center;margin-bottom:12px}.av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:22px;background:#2f3650}
+.who b{display:block}.who small{color:var(--sub)}
+.profile{font-size:13px;color:var(--sub);line-height:1.7}
+#chat{display:flex;flex-direction:column;min-height:0}
+#log{flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:72%;padding:10px 14px;border-radius:14px;line-height:1.7;font-size:15px;position:relative;animation:pop .25s ease}
+.msg.p{align-self:flex-start;background:#262c40;border-top-left-radius:4px}
+.msg.d{align-self:flex-end;background:#2b4a8b;border-top-right-radius:4px}
+.msg .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:9px;margin-left:8px;background:#0b0d12;color:var(--acc);vertical-align:middle}
+.tip{align-self:center;max-width:80%;font-size:13px;color:#cfd6e6;background:#1a1f2c;border:1px dashed #3a4462;padding:8px 12px;border-radius:10px}
+.tip.good{border-color:var(--good)}.tip.bad{border-color:var(--bad)}
+.speaking{align-self:flex-start;color:var(--sub);font-size:13px;display:flex;gap:8px;align-items:center}
+.wave{display:flex;gap:3px;align-items:end;height:16px}.wave i{width:3px;background:var(--acc);animation:w 0.9s infinite ease-in-out}
+.wave i:nth-child(2){animation-delay:.1s}.wave i:nth-child(3){animation-delay:.2s}.wave i:nth-child(4){animation-delay:.3s}.wave i:nth-child(5){animation-delay:.4s}
+@keyframes w{0%,100%{height:4px}50%{height:16px}}@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+#choices{border-top:1px solid var(--line);padding:12px 18px;display:grid;gap:8px;background:#161a24;min-height:150px}
+#choices .hint{color:var(--sub);font-size:12px}
+#choices button{text-align:left;background:#20263a;color:var(--text);border:1px solid #33405f;border-radius:10px;padding:10px 14px;font-size:14px;cursor:pointer;font-family:inherit}
+#choices button:hover,#choices button.hl{border-color:var(--acc);background:#2a3150}
+.side{padding:16px;background:var(--panel);border-left:1px solid var(--line)}
+.meter{margin-bottom:16px}.meter .lbl{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
+.bar{height:10px;border-radius:5px;background:#0d1017;overflow:hidden}.bar i{display:block;height:100%;transition:width .6s ease}
+#m-change i{background:var(--good)}#m-rapport i{background:var(--blue)}#m-resistance i{background:var(--bad)}
+.counts{font-size:13px;color:var(--sub);line-height:1.9}.counts b{color:var(--text)}
+#overlay{position:fixed;inset:0;background:rgba(5,6,10,.78);display:grid;place-items:center;z-index:9}
+.card{width:min(720px,92vw);background:#1b1f2c;border:1px solid var(--line);border-radius:16px;padding:28px 32px}
+.card h2{margin:0 0 10px;font-size:26px}.card p{color:#cdd3e1;line-height:1.8}
+.card button{margin-top:14px;background:var(--acc);color:#111;border:0;border-radius:10px;padding:10px 22px;font-size:15px;font-weight:700;cursor:pointer}
+.rep table{width:100%;border-collapse:collapse;margin:10px 0;font-size:14px}.rep td{padding:6px 8px;border-bottom:1px solid var(--line)}.rep td:last-child{text-align:right;font-weight:700}
+.rep .verdict{font-size:18px;font-weight:700;margin:6px 0}.small{font-size:12px;color:var(--sub)}
+</style></head><body>
+<header><div class="logo">禁</div><div><h1>禁煙外来 動機づけ面接シミュレーター</h1><div class="sub">返答を選ぶと、患者さんが声で答えます</div></div></header>
+<main>
+ <aside><div class="who"><div class="av">🐱</div><div><b id="pname">ネコタ・タマさん</b><small>50代・営業職</small></div></div><div class="profile" id="profile"></div></aside>
+ <section id="chat"><div id="log"></div><div id="choices"></div></section>
+ <section class="side">
+  <div class="meter" id="m-change"><div class="lbl"><span>チェンジトーク（変わりたい気持ち）</span><span class="v"></span></div><div class="bar"><i></i></div></div>
+  <div class="meter" id="m-rapport"><div class="lbl"><span>信頼関係</span><span class="v"></span></div><div class="bar"><i></i></div></div>
+  <div class="meter" id="m-resistance"><div class="lbl"><span>抵抗（維持トーク）</span><span class="v"></span></div><div class="bar"><i></i></div></div>
+  <div class="counts" id="counts"></div>
+ </section>
+</main>
+<footer style="padding:6px 18px;font-size:11px;color:#7d869c;border-top:1px solid #2a3045;background:#11141b">教育用デモ。登場人物はすべて架空です。音声は Google Gemini TTS で生成しました。指標は MITI 4.2.1 の考え方を簡略化したもので、実際の評価基準ではありません。 © 2026 Masahide Koda（東北大学 公衆衛生学分野）</footer>
+<div id="overlay"><div class="card"><h2 id="t-title">禁煙外来 動機づけ面接シミュレーター</h2><p id="t-intro"></p><button id="startbtn">面接をはじめる</button><p class="small" style="margin-top:12px">音声が流れます。スピーカーまたはイヤホンをご用意ください。</p></div></div>
+<script>
+const Q=new URLSearchParams(location.search), DEMO=Q.get('demo'); // demo=good|poor|neutral → auto path
+const CODE={OQ:'開かれた質問',CQ:'閉じた質問',SR:'単純な聞き返し',CR:'複雑な聞き返し',AF:'是認',SUM:'要約',AP:'自律性の尊重',GI:'情報提供',PER:'説得・警告',ADV:'許可のない助言',CON:'直面化'};
+const GOOD=new Set(['OQ','SR','CR','AF','SUM','AP','GI']);
+let S,m,cur,codes=[],path=[],T0=performance.now();window.__clips=[];
+const $=s=>document.querySelector(s), log=$('#log');
+function setMeters(){for(const k of ['change','rapport','resistance']){m[k]=Math.max(0,Math.min(100,m[k]));$('#m-'+k+' i').style.width=m[k]+'%';$('#m-'+k+' .v').textContent=m[k]}
+ const c=x=>codes.filter(y=>x.includes(y)).length;
+ $('#counts').innerHTML=`質問 <b>${c(['OQ','CQ'])}</b>（うち開かれた <b>${c(['OQ'])}</b>）<br>聞き返し <b>${c(['SR','CR'])}</b>（うち複雑 <b>${c(['CR'])}</b>）<br>是認・要約・自律 <b>${c(['AF','SUM','AP'])}</b><br>説得・助言・直面化 <b>${c(['PER','ADV','CON'])}</b>`}
+function add(cls,html){const d=document.createElement('div');d.className=cls;d.innerHTML=html;log.appendChild(d);log.scrollTop=log.scrollHeight;return d}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function play(src,label){return new Promise(res=>{const a=new Audio(src);window.__clips.push({src,t:(performance.now()-T0)/1000});
+ const sp=add('speaking',`<span class="wave"><i></i><i></i><i></i><i></i><i></i></span>${label}`);
+ a.onended=()=>{sp.remove();res()};a.onerror=()=>{sp.remove();setTimeout(res,1500)};a.play().catch(()=>{sp.remove();setTimeout(res,1500)})})}
+async function patientSay(id){const n=S.nodes[id];await play(`audio/${id}.mp3`,'ネコタさんが話しています…');add('msg p',n.patient)}
+async function showNode(id){cur=id;const n=S.nodes[id];await patientSay(id);
+ if(n.end){return report(n.end)}
+ const box=$('#choices');box.innerHTML='<div class="hint">返答を選んでください（クリック）</div>';
+ n.choices.forEach((c,i)=>{const b=document.createElement('button');b.textContent=c.label;b.onclick=()=>choose(i);box.appendChild(b)});
+ if(DEMO){const pick=(S.demo&&S.demo[DEMO]||{})[id];await sleep(1600);const bs=box.querySelectorAll('button');const i=pick??0;bs[i].classList.add('hl');await sleep(1100);choose(i)}}
+async function choose(i){const n=S.nodes[cur],c=n.choices[i];$('#choices').innerHTML='';
+ add('msg d',`${c.label}<span class="tag">${CODE[c.code]||c.code}</span>`);codes.push(c.code);path.push(cur+':'+i);
+ await play(`audio/${cur}_c${i}.mp3`,'あなた（医療者）');
+ for(const k in c.delta)m[k]+=c.delta[k];setMeters();
+ add('tip '+(GOOD.has(c.code)?'good':'bad'),(GOOD.has(c.code)?'◎ ':'△ ')+c.feedback);
+ await sleep(DEMO?1800:900);showNode(c.next)}
+function report(end){const c=x=>codes.filter(y=>x.includes(y)).length;const R=c(['SR','CR']),Qn=c(['OQ','CQ']);
+ const rq=Qn?(R/Qn).toFixed(2):'質問なし';const cr=R?Math.round(100*c(['CR'])/R)+'%':'聞き返しなし';
+ const sc=S.scoring||{};const txt=((sc.report_templates||{})[end]||'').split('\n').slice(2).join('<br>');
+ const v={good:'行動変容への一歩を引き出せました',neutral:'関係は保てましたが、変化の言葉はまだ少なめです',poor:'患者さんが身構えてしまいました'}[end];
+ $('#overlay').innerHTML=`<div class="card rep"><h2>パフォーマンス評価（MITIの考え方に基づく）</h2><div class="verdict">${v}</div>
+ <table><tr><td>聞き返し ÷ 質問（R:Q）</td><td>${rq}</td></tr><tr><td>複雑な聞き返しの割合（%CR）</td><td>${cr}</td></tr>
+ <tr><td>MIに一致する行動（是認・要約・自律の尊重）</td><td>${c(['AF','SUM','AP'])}</td></tr><tr><td>MIに一致しない行動（説得・助言・直面化）</td><td>${c(['PER','ADV','CON'])}</td></tr>
+ <tr><td>チェンジトーク／信頼関係／抵抗</td><td>${m.change} / ${m.rapport} / ${m.resistance}</td></tr></table>
+ <p>${txt}</p><p class="small">※指標はMITI 4.2.1の考え方を簡略化したデモです。実際の評価では、全発話をJevで分類し、教員が確率の低い発話を確認します。</p>
+ <button onclick="location.href=location.pathname">もう一度</button></div>`;$('#overlay').style.display='grid'}
+fetch('scenario.json').then(r=>r.json()).then(j=>{S=j;m={...S.meters};$('#t-title').textContent=S.title||$('#t-title').textContent;$('#t-intro').textContent=S.intro||'';
+ $('#pname').textContent=S.patient.name;$('#profile').textContent=S.patient.profile;setMeters();
+ const go=()=>{$('#overlay').style.display='none';T0=performance.now();window.__t0=Date.now();showNode(S.start)};
+ $('#startbtn').onclick=go;if(DEMO)setTimeout(go,2500)});
+</script></body></html>
