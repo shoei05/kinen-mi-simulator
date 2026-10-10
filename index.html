@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>禁煙外来 動機づけ面接シミュレーター</title>
+<link rel="icon" href="img/favicon.png">
+<meta name="description" content="返答を選ぶと、患者さんが声で答える。禁煙外来の動機づけ面接（MI）を練習する教育用デモ。">
+<meta property="og:title" content="禁煙外来 動機づけ面接シミュレーター"><meta property="og:description" content="返答を選ぶと、患者さんが声で答える教育用デモ"><meta property="og:image" content="https://shoei05.github.io/kinen-mi-simulator/img/og.jpg"><meta property="og:url" content="https://shoei05.github.io/kinen-mi-simulator/"><meta name="twitter:card" content="summary_large_image">
 <style>
 :root{--bg:#14171f;--panel:#1c2030;--line:#2a3045;--text:#e7e9ef;--sub:#9aa3b8;--acc:#f0b429;--good:#3fbf7f;--bad:#e5534b;--blue:#4c8dff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans JP","Hiragino Sans",sans-serif;height:100vh;display:flex;flex-direction:column}
@@ -9,7 +12,10 @@ header{display:flex;align-items:center;gap:14px;padding:10px 18px;border-bottom:
 header h1{font-size:16px;margin:0;letter-spacing:.05em}header .sub{color:var(--sub);font-size:12px}
 main{flex:1;display:grid;grid-template-columns:260px 1fr 300px;min-height:0}
 aside{border-right:1px solid var(--line);padding:14px;background:var(--panel)}
-.who{display:flex;gap:10px;align-items:center;margin-bottom:12px}.av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:22px;background:#2f3650}
+.who{display:flex;gap:10px;align-items:center;margin-bottom:12px}.av{width:44px;height:44px;border-radius:50%;object-fit:cover;background:#2f3650}
+.bigav{width:100%;border-radius:14px;margin:6px 0 12px;transition:opacity .3s}
+.row{display:flex;gap:8px;align-items:flex-start}.row.d{justify-content:flex-end}.mini{width:34px;height:34px;border-radius:50%;flex:none}
+.card{max-height:92vh;overflow-y:auto}.card img.hero{width:100%;height:220px;object-fit:cover;object-position:center 40%;border-radius:12px;margin-bottom:12px}.rep img.hero{height:180px}
 .who b{display:block}.who small{color:var(--sub)}
 .profile{font-size:13px;color:var(--sub);line-height:1.7}
 #chat{display:flex;flex-direction:column;min-height:0}
@@ -42,7 +48,7 @@ aside{border-right:1px solid var(--line);padding:14px;background:var(--panel)}
 </style></head><body>
 <header><div class="logo">禁</div><div><h1>禁煙外来 動機づけ面接シミュレーター</h1><div class="sub">返答を選ぶと、患者さんが声で答えます</div></div></header>
 <main>
- <aside><div class="who"><div class="av">🐱</div><div><b id="pname">ネコタ・タマさん</b><small>50代・営業職</small></div></div><div class="profile" id="profile"></div></aside>
+ <aside><div class="who"><img class="av" src="img/patient_neutral.webp" alt=""><div><b id="pname">ネコタ・タマさん</b><small>50代・営業職</small></div></div><img id="pav" class="bigav" src="img/patient_neutral.webp" alt="ネコタ・タマさん"><div class="profile" id="profile"></div></aside>
  <section id="chat"><div id="log"></div><div id="choices"></div></section>
  <section class="side">
   <div class="meter" id="m-change"><div class="lbl"><span>チェンジトーク（変わりたい気持ち）</span><span class="v"></span></div><div class="bar"><i></i></div></div>
@@ -51,8 +57,8 @@ aside{border-right:1px solid var(--line);padding:14px;background:var(--panel)}
   <div class="counts" id="counts"></div>
  </section>
 </main>
-<footer style="padding:6px 18px;font-size:11px;color:#7d869c;border-top:1px solid #2a3045;background:#11141b">教育用デモ。登場人物はすべて架空です。音声は Google Gemini TTS で生成しました。指標は MITI 4.2.1 の考え方を簡略化したもので、実際の評価基準ではありません。 © 2026 Masahide Koda（東北大学 公衆衛生学分野）</footer>
-<div id="overlay"><div class="card"><h2 id="t-title">禁煙外来 動機づけ面接シミュレーター</h2><p id="t-intro"></p><button id="startbtn">面接をはじめる</button><p class="small" style="margin-top:12px">音声が流れます。スピーカーまたはイヤホンをご用意ください。</p></div></div>
+<footer style="padding:6px 18px;font-size:11px;color:#7d869c;border-top:1px solid #2a3045;background:#11141b">教育用デモ。登場人物はすべて架空です。音声は Google Gemini TTS、イラストは Gemini 2.5 Flash Image で生成しました。指標は MITI 4.2.1 の考え方を簡略化したもので、実際の評価基準ではありません。 © 2026 Masahide Koda（東北大学 公衆衛生学分野）</footer>
+<div id="overlay"><div class="card"><img class="hero" src="img/title.webp" alt=""><h2 id="t-title">禁煙外来 動機づけ面接シミュレーター</h2><p id="t-intro"></p><button id="startbtn">面接をはじめる</button><p class="small" style="margin-top:12px">音声が流れます。スピーカーまたはイヤホンをご用意ください。</p></div></div>
 <script>
 const Q=new URLSearchParams(location.search), DEMO=Q.get('demo'); // demo=good|poor|neutral → auto path
 const CODE={OQ:'開かれた質問',CQ:'閉じた質問',SR:'単純な聞き返し',CR:'複雑な聞き返し',AF:'是認',SUM:'要約',AP:'自律性の尊重',GI:'情報提供',PER:'説得・警告',ADV:'許可のない助言',CON:'直面化'};
@@ -62,28 +68,29 @@ const $=s=>document.querySelector(s), log=$('#log');
 function setMeters(){for(const k of ['change','rapport','resistance']){m[k]=Math.max(0,Math.min(100,m[k]));$('#m-'+k+' i').style.width=m[k]+'%';$('#m-'+k+' .v').textContent=m[k]}
  const c=x=>codes.filter(y=>x.includes(y)).length;
  $('#counts').innerHTML=`質問 <b>${c(['OQ','CQ'])}</b>（うち開かれた <b>${c(['OQ'])}</b>）<br>聞き返し <b>${c(['SR','CR'])}</b>（うち複雑 <b>${c(['CR'])}</b>）<br>是認・要約・自律 <b>${c(['AF','SUM','AP'])}</b><br>説得・助言・直面化 <b>${c(['PER','ADV','CON'])}</b>`}
+function mood(){const f=m.resistance>=60?"defensive":m.change>=45?"hopeful":m.change>=30?"thinking":"neutral";const im=$("#pav");if(!im.src.endsWith(f+".webp")){im.style.opacity=0;setTimeout(()=>{im.src="img/patient_"+f+".webp";im.style.opacity=1},250)}return f}
 function add(cls,html){const d=document.createElement('div');d.className=cls;d.innerHTML=html;log.appendChild(d);log.scrollTop=log.scrollHeight;return d}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function play(src,label){return new Promise(res=>{const a=new Audio(src);window.__clips.push({src,t:(performance.now()-T0)/1000});
  const sp=add('speaking',`<span class="wave"><i></i><i></i><i></i><i></i><i></i></span>${label}`);
  a.onended=()=>{sp.remove();res()};a.onerror=()=>{sp.remove();setTimeout(res,1500)};a.play().catch(()=>{sp.remove();setTimeout(res,1500)})})}
-async function patientSay(id){const n=S.nodes[id];await play(`audio/${id}.mp3`,'ネコタさんが話しています…');add('msg p',n.patient)}
+async function patientSay(id){const n=S.nodes[id];await play(`audio/${id}.mp3`,'ネコタさんが話しています…');const r=add('row p',`<img class="mini" src="img/patient_${mood()}.webp"><div class="msg p">${n.patient}</div>`)}
 async function showNode(id){cur=id;const n=S.nodes[id];await patientSay(id);
  if(n.end){return report(n.end)}
  const box=$('#choices');box.innerHTML='<div class="hint">返答を選んでください（クリック）</div>';
  n.choices.forEach((c,i)=>{const b=document.createElement('button');b.textContent=c.label;b.onclick=()=>choose(i);box.appendChild(b)});
  if(DEMO){const pick=(S.demo&&S.demo[DEMO]||{})[id];await sleep(1600);const bs=box.querySelectorAll('button');const i=pick??0;bs[i].classList.add('hl');await sleep(1100);choose(i)}}
 async function choose(i){const n=S.nodes[cur],c=n.choices[i];$('#choices').innerHTML='';
- add('msg d',`${c.label}<span class="tag">${CODE[c.code]||c.code}</span>`);codes.push(c.code);path.push(cur+':'+i);
+ add('row d',`<div class="msg d">${c.label}<span class="tag">${CODE[c.code]||c.code}</span></div><img class="mini" src="img/doctor.webp">`);codes.push(c.code);path.push(cur+':'+i);
  await play(`audio/${cur}_c${i}.mp3`,'あなた（医療者）');
- for(const k in c.delta)m[k]+=c.delta[k];setMeters();
+ for(const k in c.delta)m[k]+=c.delta[k];setMeters();mood();
  add('tip '+(GOOD.has(c.code)?'good':'bad'),(GOOD.has(c.code)?'◎ ':'△ ')+c.feedback);
  await sleep(DEMO?1800:900);showNode(c.next)}
 function report(end){const c=x=>codes.filter(y=>x.includes(y)).length;const R=c(['SR','CR']),Qn=c(['OQ','CQ']);
  const rq=Qn?(R/Qn).toFixed(2):'質問なし';const cr=R?Math.round(100*c(['CR'])/R)+'%':'聞き返しなし';
  const sc=S.scoring||{};const txt=((sc.report_templates||{})[end]||'').split('\n').slice(2).join('<br>');
  const v={good:'行動変容への一歩を引き出せました',neutral:'関係は保てましたが、変化の言葉はまだ少なめです',poor:'患者さんが身構えてしまいました'}[end];
- $('#overlay').innerHTML=`<div class="card rep"><h2>パフォーマンス評価（MITIの考え方に基づく）</h2><div class="verdict">${v}</div>
+ $('#overlay').innerHTML=`<div class="card rep"><img class="hero" src="img/end_${end}.webp" alt=""><h2>パフォーマンス評価（MITIの考え方に基づく）</h2><div class="verdict">${v}</div>
  <table><tr><td>聞き返し ÷ 質問（R:Q）</td><td>${rq}</td></tr><tr><td>複雑な聞き返しの割合（%CR）</td><td>${cr}</td></tr>
  <tr><td>MIに一致する行動（是認・要約・自律の尊重）</td><td>${c(['AF','SUM','AP'])}</td></tr><tr><td>MIに一致しない行動（説得・助言・直面化）</td><td>${c(['PER','ADV','CON'])}</td></tr>
  <tr><td>チェンジトーク／信頼関係／抵抗</td><td>${m.change} / ${m.rapport} / ${m.resistance}</td></tr></table>
