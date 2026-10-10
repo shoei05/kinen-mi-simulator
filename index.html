@@ -13,8 +13,8 @@ body{margin:0 auto;max-width:1920px;background:#fff;color:var(--ink);font-family
 header{display:flex;align-items:baseline;gap:16px;padding:0 24px;height:68px;background:var(--accent);color:#fff;flex:none}
 .logo{display:none}
 header h1{font-size:26.6px;margin:0;letter-spacing:.06em;font-weight:700;line-height:52px;white-space:nowrap}header .sub{color:rgba(255,255,255,.88);font-size:18.2px}
-main{flex:1;display:grid;grid-template-columns:340px 1fr 380px;min-height:0}
-aside{border-right:1px solid var(--line);padding:16px;background:#fff}
+main{flex:1;display:grid;grid-template-columns:340px 1fr 380px;grid-template-rows:minmax(0,1fr);min-height:0}
+aside{border-right:1px solid var(--line);padding:16px;background:#fff;overflow-y:auto}
 .who{display:flex;gap:10px;align-items:center;margin-bottom:12px}.av{width:44px;height:44px;border-radius:50%;object-fit:cover;background:#fff;border:2px solid var(--lblue)}
 .bigav{width:100%;border-radius:16px;margin:6px 0 12px;transition:opacity .3s;border:2px solid var(--lblue);background:#fff}
 .row{display:flex;gap:8px;align-items:flex-start}.row.d{justify-content:flex-end}.mini{width:34px;height:34px;border-radius:50%;flex:none;border:2px solid var(--lblue);background:#fff;object-fit:cover}
@@ -32,16 +32,17 @@ aside{border-right:1px solid var(--line);padding:16px;background:#fff}
 .wave{display:flex;gap:3px;align-items:end;height:16px}.wave i{width:3px;background:var(--accent);animation:w 0.9s infinite ease-in-out}
 .wave i:nth-child(2){animation-delay:.1s}.wave i:nth-child(3){animation-delay:.2s}.wave i:nth-child(4){animation-delay:.3s}.wave i:nth-child(5){animation-delay:.4s}
 @keyframes w{0%,100%{height:4px}50%{height:16px}}@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
-#choices{border-top:1px solid var(--line);padding:12px 18px;display:grid;gap:8px;background:#fff;min-height:150px}
+#choices{flex:none;border-top:1px solid var(--line);padding:12px 18px;display:grid;gap:8px;background:#fff;min-height:150px;max-height:60%;overflow-y:auto}
 #choices .hint{color:var(--muted);font-size:16.8px}
 #choices button{text-align:left;background:#fff;color:var(--ink);border:2px solid var(--lblue);border-radius:12px;padding:10px 14px;font-size:19.6px;line-height:1.6;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s}
 #choices button:hover,#choices button.hl{border-color:var(--accent);background:var(--pinkbg)}
-.side{padding:16px;background:#fff;border-left:1px solid var(--line)}
+.side{padding:16px;background:#fff;border-left:1px solid var(--line);overflow-y:auto}
 .meter{margin-bottom:16px}.meter .lbl{display:flex;justify-content:space-between;font-size:18.2px;margin-bottom:5px;color:var(--ink)}.meter .v{font-weight:700;color:var(--ink)}
 .bar{height:10px;border-radius:5px;background:#edf0f2;overflow:hidden}.bar i{display:block;height:100%;transition:width .6s ease}
 #m-change i{background:var(--blue)}#m-rapport i{background:var(--gold)}#m-resistance i{background:var(--accent)}
 .counts{font-size:18.2px;color:var(--muted);line-height:1.9;border-top:1px solid var(--line);padding-top:10px}.counts b{color:var(--accent)}
-footer{flex:none;background:var(--accent);color:#fff;font-size:15.4px;line-height:1.5;padding:6px 24px;text-align:right}
+footer{flex:none;background:var(--accent);color:#fff;font-size:12px;line-height:1.5;padding:4px 24px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.embed footer{display:none}
 #overlay{position:fixed;inset:0;background:rgba(31,29,30,.55);display:grid;place-items:center;z-index:9;padding:12px}
 .card{width:min(960px,94vw);max-height:92vh;overflow-y:auto;background:#fff;border-radius:16px;padding:28px 32px;box-shadow:0 12px 40px rgba(31,29,30,.25);color:var(--ink)}
 .card img.hero{width:100%;height:220px;object-fit:cover;object-position:center 40%;border-radius:16px;margin-bottom:14px;display:block;background:#fff}.rep img.hero{height:180px}
@@ -167,6 +168,7 @@ fetch('scenario.json').then(r=>r.json()).then(j=>{S=j;m={...S.meters};$('#t-titl
  const go=()=>{$('#overlay').style.display='none';T0=performance.now();window.__t0=Date.now();showNode(S.start)};
  $('#startbtn').onclick=()=>{unlockAudio();go()};if(DEMO)setTimeout(go,2500)});
 </script><script>
+if(window.parent!==window||/[?&]embed/.test(location.search))document.documentElement.classList.add('embed');
 // スライドに埋め込まれたとき、←→キーを親のスライドへ渡す
 if(window.parent!==window){addEventListener('keydown',e=>{if(['ArrowRight','ArrowLeft','PageDown','PageUp'].includes(e.key)){e.preventDefault();parent.postMessage({deckKey:e.key},'*')}})}
 </script></body></html>
