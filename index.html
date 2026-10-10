@@ -106,8 +106,8 @@ footer{flex:none;background:var(--accent);color:#fff;font-size:11px;line-height:
   <div class="counts" id="counts"></div>
  </section>
 </main>
-<footer>教育用デモ。登場人物はすべて架空です。音声は Google Gemini TTS、イラストは Gemini 2.5 Flash Image で生成しました。指標は MITI 4.2.1 の考え方を簡略化したもので、実際の評価基準ではありません。 © 2026 Masahide Koda（東北大学 公衆衛生学分野）</footer>
-<div id="overlay"><div class="card"><img class="hero" src="img/title.webp?v=2" alt=""><h2 id="t-title">禁煙外来 動機づけ面接シミュレーター</h2><p id="t-intro"></p><button id="startbtn">面接をはじめる</button><p class="small" style="margin-top:12px">音声が流れます。スピーカーまたはイヤホンをご用意ください。</p><p class="small">教育用デモ。登場人物はすべて架空です。指標は MITI 4.2.1 の考え方を簡略化したもので、実際の評価基準ではありません。</p></div></div>
+<footer>教育用デモ。登場人物はすべて架空です。音声は Google Gemini TTS、イラストは Gemini 2.5 Flash Image で生成しました。指標はMITI 4.2.1の考え方を簡略化したもので、実際の評価基準ではありません。 © 2026 Masahide Koda（東北大学 公衆衛生学分野）</footer>
+<div id="overlay"><div class="card"><img class="hero" src="img/title.webp?v=2" alt=""><h2 id="t-title">禁煙外来 動機づけ面接シミュレーター</h2><p id="t-intro"></p><button id="startbtn">面接をはじめる</button><p class="small" style="margin-top:12px">音声が流れます。スピーカーまたはイヤホンをご用意ください。</p><p class="small">教育用デモ。登場人物はすべて架空です。指標はMITI 4.2.1の考え方を簡略化したもので、実際の評価基準ではありません。</p></div></div>
 <script>
 const Q=new URLSearchParams(location.search), DEMO=Q.get('demo'); // demo=good|best|poor|neutral → auto path
 const CODE={OQ:'開かれた質問',CQ:'閉じた質問',SR:'単純な聞き返し',CR:'複雑な聞き返し',AF:'是認',SUM:'要約',AP:'許可を求める／自律性の尊重',GI:'情報提供',PER:'説得・警告',ADV:'許可のない助言',CON:'直面化'};
@@ -158,7 +158,7 @@ function report(end){const c=x=>codes.filter(y=>x.includes(y)).length;const R=c(
  <tr><td>チェンジトーク／信頼関係／抵抗</td><td>${m.change} / ${m.rapport} / ${m.resistance}</td></tr></table>
  <h3>返答ごとの振り返り</h3><table class="turns">${rows}</table>
  <h3>指導医からの講評</h3><p>${(S.feedback_voice||{})[fk]||txt}</p>
- <p class="small">※指標はMITI 4.2.1の考え方を簡略化したデモです。実際の評価では、全発話をMI発話分類ツール（Jev）で分類し、教員が確率の低い発話を確認します。</p>
+ <p class="small">※指標はMITI 4.2.1の考え方を簡略化したデモです。実際の評価では、全発話をMI発話分類ツール（Jev）で分類し、分類の確率が低い発話を教員が確認します。</p>
  <button class="fbbtn" onclick="AU.src='audio/feedback_${fk}.mp3';AU.play()">講評をもう一度聞く</button><button onclick="location.href=location.pathname">もう一度</button></div>`;
  $('#overlay').style.display='grid';unlockAudio();const fa=AU;fa.onended=null;fa.src=`audio/feedback_${fk}.mp3`;window.__clips.push({src:`audio/feedback_${fk}.mp3`,t:(performance.now()-T0)/1000});fa.play().catch(()=>{});
  if(DEMO){let y=0;const card=$('.rep');const iv=setInterval(()=>{y+=3;card.scrollTop=y;if(y>card.scrollHeight)clearInterval(iv)},60)}}
